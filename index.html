@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ball Bounce with Visible Circle and Radius</title>
+  <title>Ball Bounce with Limited Growth and Visible Circle</title>
   <style>
     html, body {
       margin: 0;
@@ -62,20 +62,16 @@
   window.addEventListener('resize', resizeCanvas);
 
   const gravity = 0.3;
-  const bounce = 1.2;
   let hue = 0;
 
   const circle = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    radius: Math.max(canvas.width, canvas.height) * 0.6
+    radius: Math.min(canvas.width, canvas.height) * 0.45
   };
 
-  // ✅ Bounce sound
   const bounceSound = new Audio("https://cdn.jsdelivr.net/gh/StefanLundmark/web-audio-samples@main/ping.wav");
   bounceSound.volume = 0.5;
-
-  // ✅ Autoplay unlock
   window.addEventListener("click", () => {
     bounceSound.play().catch(() => {});
   }, { once: true });
@@ -127,14 +123,15 @@
         this.dx -= 2 * dot * normalX;
         this.dy -= 2 * dot * normalY;
 
-        this.dx *= bounce;
-        this.dy *= bounce;
+        // ✅ Apply same slow bounce multiplier
+        this.dx *= 1.01;
+        this.dy *= 1.01;
 
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
-        // ✅ Slower growth
+        // ✅ Slow growth
         this.radius *= 1.01;
 
         try {
@@ -165,7 +162,6 @@
     particles.length = 0;
   }
 
-  // ✅ Visible background circle
   function drawBoundary() {
     ctx.beginPath();
     ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
@@ -181,12 +177,11 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
-    circle.radius = Math.max(canvas.width, canvas.height) * 0.6;
+    circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
 
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
 
-    // ✅ Update radius text
     radiusText.textContent = `Radius: ${ball.radius.toFixed(1)}`;
 
     drawBoundary();
