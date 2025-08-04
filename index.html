@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Balls</title>
+  <title>Tiny Ball + Radius Display</title>
   <style>
     html, body {
       margin: 0;
@@ -12,11 +12,15 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      font-family: sans-serif;
+      color: white;
     }
-    canvas {
-      display: block;
-      margin-top: 10px;
+
+    #radiusText {
+      margin-top: 15px;
+      font-size: 18px;
     }
+
     button {
       margin-top: 10px;
       padding: 10px 20px;
@@ -27,13 +31,20 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     button:hover {
       background: #444;
+    }
+
+    canvas {
+      margin-top: 10px;
+      display: block;
     }
   </style>
 </head>
 <body>
 
+<div id="radiusText">Radius: 0</div>
 <button id="resetBtn">Reset Ball</button>
 <canvas id="canvas"></canvas>
 
@@ -41,10 +52,11 @@
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const resetBtn = document.getElementById('resetBtn');
+  const radiusText = document.getElementById('radiusText');
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.height = window.innerHeight * 0.85;
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
@@ -56,14 +68,11 @@
   const circle = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    radius: Math.max(canvas.width, canvas.height) * 0.6 // BIGGER circle
+    radius: Math.max(canvas.width, canvas.height) * 0.6
   };
 
-  // ✅ Sound: Short pop from OpenGameArt, CORS-safe
   const bounceSound = new Audio("https://cdn.jsdelivr.net/gh/StefanLundmark/web-audio-samples@main/ping.wav");
   bounceSound.volume = 0.5;
-
-  // Required for autoplay (esp. on some mobile/Chrome devices)
   window.addEventListener("click", () => {
     bounceSound.play().catch(() => {});
   }, { once: true });
@@ -124,13 +133,11 @@
 
         this.radius *= 1.05;
 
-        // ✅ Play sound safely
         try {
           bounceSound.currentTime = 0;
           bounceSound.play();
         } catch (e) {}
 
-        // 10 particles
         for (let i = 0; i < 10; i++) {
           const angle = Math.random() * 2 * Math.PI;
           const speed = Math.random() * 2 + 1;
@@ -150,7 +157,7 @@
 
   function createBall() {
     hue = 0;
-    ball = new Ball(circle.x, circle.y - 100, 5, -1.5, 0, `hsl(${hue}, 100%, 50%)`); // smaller ball!
+    ball = new Ball(circle.x, circle.y - 100, 5, -1.5, 0, `hsl(${hue}, 100%, 50%)`);
     particles.length = 0;
   }
 
@@ -167,10 +174,13 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
-    circle.radius = Math.max(canvas.width, canvas.height) * 0.6; // Resize-aware big circle
+    circle.radius = Math.max(canvas.width, canvas.height) * 0.6;
 
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
+
+    // 👇 Live radius update
+    radiusText.textContent = `Radius: ${ball.radius.toFixed(1)}`;
 
     drawBoundary();
     ball.update();
