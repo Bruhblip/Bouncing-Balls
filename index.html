@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Tiny Ball + Radius Display</title>
+  <title>Ball Bounce with Visible Circle and Radius</title>
   <style>
     html, body {
       margin: 0;
@@ -71,8 +71,11 @@
     radius: Math.max(canvas.width, canvas.height) * 0.6
   };
 
+  // ✅ Bounce sound
   const bounceSound = new Audio("https://cdn.jsdelivr.net/gh/StefanLundmark/web-audio-samples@main/ping.wav");
   bounceSound.volume = 0.5;
+
+  // ✅ Autoplay unlock
   window.addEventListener("click", () => {
     bounceSound.play().catch(() => {});
   }, { once: true });
@@ -131,7 +134,8 @@
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
-        this.radius *= 1.05;
+        // ✅ Slower growth
+        this.radius *= 1.01;
 
         try {
           bounceSound.currentTime = 0;
@@ -161,9 +165,12 @@
     particles.length = 0;
   }
 
+  // ✅ Visible background circle
   function drawBoundary() {
     ctx.beginPath();
     ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.fill();
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 3;
     ctx.stroke();
@@ -179,7 +186,7 @@
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
 
-    // 👇 Live radius update
+    // ✅ Update radius text
     radiusText.textContent = `Radius: ${ball.radius.toFixed(1)}`;
 
     drawBoundary();
