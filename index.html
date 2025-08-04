@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Gravity Ball in Circle</title>
+  <title>Rainbow Gravity Ball</title>
   <style>
     html, body {
       margin: 0;
@@ -19,18 +19,19 @@
 <canvas id="canvas"></canvas>
 
 <script>
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
 
-  const gravity = 0.2;
-  const bounce = 0.8;
+  const gravity = 0.3;
+  const bounce = 0.9; // Stronger bounce
+  let hue = 0;
 
   const circle = {
     x: canvas.width / 2,
@@ -39,12 +40,15 @@
   };
 
   class Ball {
-    constructor(x, y, radius, dy, color) {
+    constructor(x, y, radius, dy, color, isParticle = false) {
       this.x = x;
       this.y = y;
       this.radius = radius;
       this.dy = dy;
       this.color = color;
+      this.isParticle = isParticle;
+      this.life = isParticle ? 60 : null; // Particle lifespan
+      this.dx = isParticle ? (Math.random() - 0.5) * 6 : 0;
     }
 
     draw() {
@@ -56,32 +60,47 @@
     }
 
     update() {
+      if (this.isParticle) {
+        this.life--;
+        if (this.life <= 0) return false;
+        this.dy += gravity * 0.3;
+        this.y += this.dy;
+        this.x += this.dx;
+        this.draw();
+        return true;
+      }
+
       this.dy += gravity;
       this.y += this.dy;
 
       const distFromCenter = Math.hypot(this.x - circle.x, this.y - circle.y);
       if (distFromCenter + this.radius >= circle.radius) {
-        // Reflect direction
-        const angleToCenter = Math.atan2(this.y - circle.y, this.x - circle.x);
-        const normalX = Math.cos(angleToCenter);
-        const normalY = Math.sin(angleToCenter);
+        const angle = Math.atan2(this.y - circle.y, this.x - circle.x);
+        const normalX = Math.cos(angle);
+        const normalY = Math.sin(angle);
 
         const dot = this.dy * normalY;
         this.dy = -dot * bounce;
 
-        // Adjust position slightly to avoid sticking
+        // Avoid sticking
         this.y = circle.y + normalY * (circle.radius - this.radius - 1);
 
-        // Grow ball
+        // Grow
         this.radius *= 1.05;
-        this.radius = Math.min(this.radius, 100); // prevent infinite size
+
+        // Spawn particles
+        for (let i = 0; i < 3; i++) {
+          particles.push(new Ball(this.x, this.y, 4, (Math.random() - 0.5) * 5, this.color, true));
+        }
       }
 
       this.draw();
+      return true;
     }
   }
 
-  const ball = new Ball(circle.x, circle.y - 100, 20, 0, "orange");
+  let ball = new Ball(circle.x, circle.y - 100, 20, 0, `hsl(${hue}, 100%, 50%)`);
+  const particles = [];
 
   function drawBoundary() {
     ctx.beginPath();
@@ -94,12 +113,25 @@
 
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update circle on resize
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
     circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
 
+    // Animate rainbow
+    hue = (hue + 1) % 360;
+    ball.color = `hsl(${hue}, 100%, 50%)`;
+
     drawBoundary();
+
     ball.update();
+    for (let i = particles.length - 1; i >= 0; i--) {
+      if (!particles[i].update()) {
+        particles.splice(i, 1);
+      }
+    }
+
     requestAnimationFrame(animate);
   }
 
