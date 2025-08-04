@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ball Bounce with Limited Growth and Visible Circle</title>
+  <title>Ball</title> <!-- ✅ Updated title -->
   <style>
     html, body {
       margin: 0;
@@ -67,7 +67,7 @@
   const circle = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    radius: Math.min(canvas.width, canvas.height) * 0.45
+    radius: Math.min(canvas.width, canvas.height) * 0.4 // ✅ Smaller, always visible
   };
 
   const bounceSound = new Audio("https://cdn.jsdelivr.net/gh/StefanLundmark/web-audio-samples@main/ping.wav");
@@ -123,16 +123,16 @@
         this.dx -= 2 * dot * normalX;
         this.dy -= 2 * dot * normalY;
 
-        // ✅ Apply same slow bounce multiplier
-        this.dx *= 1.01;
-        this.dy *= 1.01;
+        // ✅ Use slower bounce multiplier
+        this.dx *= 1.001;
+        this.dy *= 1.001;
 
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
-        // ✅ Slow growth
-        this.radius *= 1.01;
+        // ✅ Slower growth
+        this.radius *= 1.001;
 
         try {
           bounceSound.currentTime = 0;
@@ -162,6 +162,7 @@
     particles.length = 0;
   }
 
+  // ✅ Visible background circle with fill
   function drawBoundary() {
     ctx.beginPath();
     ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
@@ -177,7 +178,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
-    circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
+    circle.radius = Math.min(canvas.width, canvas.height) * 0.4; // ✅ keep inside canvas
 
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
