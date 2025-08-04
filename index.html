@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Rainbow Gravity Ball with Sound and Reset</title>
+  <title>Gravity Rainbow Ball with Sound and Particles</title>
   <style>
     html, body {
       margin: 0;
@@ -17,20 +17,18 @@
     }
     canvas {
       display: block;
-      background: #111;
-      border: 2px solid white;
       margin-top: 10px;
+      background: #111;
     }
     button {
       margin-top: 10px;
-      padding: 8px 16px;
+      padding: 10px 20px;
       font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      border: none;
       background: #222;
-      color: white;
-      transition: background-color 0.3s;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
     button:hover {
       background: #444;
@@ -40,7 +38,7 @@
 <body>
 
 <button id="resetBtn">Reset Ball</button>
-<canvas id="canvas" width="600" height="600"></canvas>
+<canvas id="canvas"></canvas>
 
 <script>
   const canvas = document.getElementById("canvas");
@@ -55,7 +53,7 @@
   window.addEventListener("resize", resizeCanvas);
 
   const gravity = 0.3;
-  const bounce = 0.9;
+  const bounce = 1.1; // MUCH higher bounce
   let hue = 0;
 
   const circle = {
@@ -64,10 +62,8 @@
     radius: Math.min(canvas.width, canvas.height) * 0.45
   };
 
-  // Load bounce sound
-  const bounceSound = new Audio();
-  bounceSound.src = "https://freesound.org/data/previews/341/341695_5260873-lq.mp3"; // small bounce sound
-  bounceSound.volume = 0.3;
+  const bounceSound = new Audio("https://freesound.org/data/previews/341/341695_5260873-lq.mp3");
+  bounceSound.volume = 0.4;
 
   class Ball {
     constructor(x, y, radius, dy, dx, color, isParticle = false) {
@@ -78,13 +74,18 @@
       this.dx = dx;
       this.color = color;
       this.isParticle = isParticle;
-      this.life = isParticle ? 60 : null;
+      this.life = isParticle ? 100 : null;
+      this.opacity = 1;
     }
 
     draw() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
+      if (this.isParticle) {
+        ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${this.opacity})`;
+      } else {
+        ctx.fillStyle = this.color;
+      }
       ctx.fill();
       ctx.closePath();
     }
@@ -92,8 +93,10 @@
     update() {
       if (this.isParticle) {
         this.life--;
-        if (this.life <= 0) return false;
-        this.dy += gravity * 0.3;
+        this.opacity -= 0.01;
+        if (this.life <= 0 || this.opacity <= 0) return false;
+
+        this.dy += gravity * 0.2;
         this.y += this.dy;
         this.x += this.dx;
         this.draw();
@@ -104,36 +107,40 @@
       this.x += this.dx;
       this.y += this.dy;
 
-      const distFromCenter = Math.hypot(this.x - circle.x, this.y - circle.y);
-      if (distFromCenter + this.radius >= circle.radius) {
+      const dist = Math.hypot(this.x - circle.x, this.y - circle.y);
+
+      if (dist + this.radius >= circle.radius) {
         const angle = Math.atan2(this.y - circle.y, this.x - circle.x);
         const normalX = Math.cos(angle);
         const normalY = Math.sin(angle);
 
-        // Reflect vertical velocity with bounce
-        const dot = this.dy * normalY;
-        this.dy = -dot * bounce;
+        const dot = this.dy * normalY + this.dx * normalX;
 
-        // Stop horizontal velocity after first bounce
-        if (!this.hasBounced) {
-          this.dx = 0;
-          this.hasBounced = true;
-        }
+        // Reflect motion
+        this.dy -= 2 * dot * normalY;
+        this.dx -= 2 * dot * normalX;
 
-        // Correct position to avoid sticking
+        // Stronger upward bounce
+        this.dy *= bounce;
+
+        // Reposition to stay inside the circle
         this.x = circle.x + normalX * (circle.radius - this.radius - 1);
         this.y = circle.y + normalY * (circle.radius - this.radius - 1);
 
-        // Grow the ball
+        // Grow
         this.radius *= 1.05;
 
-        // Play sound (restart if still playing)
+        // Play sound
         bounceSound.currentTime = 0;
         bounceSound.play();
 
-        // Spawn particles
-        for (let i = 0; i < 3; i++) {
-          particles.push(new Ball(this.x, this.y, 4, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, this.color, true));
+        // Create particles
+        for (let i = 0; i < 10; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 3 + 1;
+          const dx = Math.cos(angle) * speed;
+          const dy = Math.sin(angle) * speed;
+          particles.push(new Ball(this.x, this.y, 3, dy, dx, this.color, true));
         }
       }
 
@@ -151,11 +158,10 @@
       circle.y - 100,
       20,
       0,
-      -1.5, // initial slow move to left
+      -1.5, // start moving left
       `hsl(${hue}, 100%, 50%)`
     );
-    ball.hasBounced = false; // track first bounce
-    particles.length = 0; // clear particles
+    particles.length = 0;
   }
 
   function drawBoundary() {
@@ -170,12 +176,12 @@
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update circle dimensions on resize
+    // Update the circle in case of resize
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
     circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
 
-    // Update hue for rainbow effect
+    // Rainbow effect
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
 
@@ -192,7 +198,6 @@
     requestAnimationFrame(animate);
   }
 
-  // Reset button functionality
   resetBtn.addEventListener("click", () => {
     createBall();
   });
