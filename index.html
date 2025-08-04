@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>New bouncin balls</title>
+  <title>Balls</title>
   <style>
     html, body {
       margin: 0;
@@ -43,8 +43,8 @@
   const resetBtn = document.getElementById('resetBtn');
 
   function resizeCanvas() {
-    canvas.width = window.innerWidth * 0.9;
-    canvas.height = window.innerHeight * 0.8;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
@@ -56,12 +56,17 @@
   const circle = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    radius: Math.min(canvas.width, canvas.height) * 0.45
+    radius: Math.max(canvas.width, canvas.height) * 0.6 // BIGGER circle
   };
 
-  // Safe and fast sound effect (small bounce click)
-  const bounceSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_075f9cfab6.mp3");
+  // ✅ Sound: Short pop from OpenGameArt, CORS-safe
+  const bounceSound = new Audio("https://cdn.jsdelivr.net/gh/StefanLundmark/web-audio-samples@main/ping.wav");
   bounceSound.volume = 0.5;
+
+  // Required for autoplay (esp. on some mobile/Chrome devices)
+  window.addEventListener("click", () => {
+    bounceSound.play().catch(() => {});
+  }, { once: true });
 
   class Ball {
     constructor(x, y, radius, dx, dy, color, isParticle = false) {
@@ -102,34 +107,30 @@
       const dist = Math.hypot(this.x - circle.x, this.y - circle.y);
 
       if (dist + this.radius >= circle.radius) {
-        // Bounce off circular wall
         const angle = Math.atan2(this.y - circle.y, this.x - circle.x);
         const normalX = Math.cos(angle);
         const normalY = Math.sin(angle);
-
-        // Dot product for reflection
         const dot = this.dx * normalX + this.dy * normalY;
 
         this.dx -= 2 * dot * normalX;
         this.dy -= 2 * dot * normalY;
 
-        // Apply bounce strength
         this.dx *= bounce;
         this.dy *= bounce;
 
-        // Nudge back inside the circle
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
-        // Grow
         this.radius *= 1.05;
 
-        // Play sound
-        bounceSound.currentTime = 0;
-        bounceSound.play();
+        // ✅ Play sound safely
+        try {
+          bounceSound.currentTime = 0;
+          bounceSound.play();
+        } catch (e) {}
 
-        // Add 10 fading particles
+        // 10 particles
         for (let i = 0; i < 10; i++) {
           const angle = Math.random() * 2 * Math.PI;
           const speed = Math.random() * 2 + 1;
@@ -149,7 +150,7 @@
 
   function createBall() {
     hue = 0;
-    ball = new Ball(circle.x, circle.y - 100, 20, -1.5, 0, `hsl(${hue}, 100%, 50%)`);
+    ball = new Ball(circle.x, circle.y - 100, 5, -1.5, 0, `hsl(${hue}, 100%, 50%)`); // smaller ball!
     particles.length = 0;
   }
 
@@ -164,11 +165,9 @@
 
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Resize support
     circle.x = canvas.width / 2;
     circle.y = canvas.height / 2;
-    circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
+    circle.radius = Math.max(canvas.width, canvas.height) * 0.6; // Resize-aware big circle
 
     hue = (hue + 1) % 360;
     ball.color = `hsl(${hue}, 100%, 50%)`;
