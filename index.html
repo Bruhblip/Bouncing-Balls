@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gravity Ball in Circle</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const gravity = 0.2;
+  const bounce = 0.8;
+
+  const circle = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: Math.min(canvas.width, canvas.height) * 0.45
+  };
+
+  class Ball {
+    constructor(x, y, radius, dy, color) {
+      this.x = x;
+      this.y = y;
+      this.radius = radius;
+      this.dy = dy;
+      this.color = color;
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    update() {
+      this.dy += gravity;
+      this.y += this.dy;
+
+      const distFromCenter = Math.hypot(this.x - circle.x, this.y - circle.y);
+      if (distFromCenter + this.radius >= circle.radius) {
+        // Reflect direction
+        const angleToCenter = Math.atan2(this.y - circle.y, this.x - circle.x);
+        const normalX = Math.cos(angleToCenter);
+        const normalY = Math.sin(angleToCenter);
+
+        const dot = this.dy * normalY;
+        this.dy = -dot * bounce;
+
+        // Adjust position slightly to avoid sticking
+        this.y = circle.y + normalY * (circle.radius - this.radius - 1);
+
+        // Grow ball
+        this.radius *= 1.05;
+        this.radius = Math.min(this.radius, 100); // prevent infinite size
+      }
+
+      this.draw();
+    }
+  }
+
+  const ball = new Ball(circle.x, circle.y - 100, 20, 0, "orange");
+
+  function drawBoundary() {
+    ctx.beginPath();
+    ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    circle.x = canvas.width / 2;
+    circle.y = canvas.height / 2;
+    circle.radius = Math.min(canvas.width, canvas.height) * 0.45;
+
+    drawBoundary();
+    ball.update();
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+</script>
+</body>
+</html>
