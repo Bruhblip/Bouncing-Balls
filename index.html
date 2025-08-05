@@ -124,15 +124,15 @@
         this.dy -= 2 * dot * normalY;
 
         // ✅ Use slower bounce multiplier
-        this.dx *= 1.05;
-        this.dy *= 1.05;
+        this.dx *= 1.025;
+        this.dy *= 1.025;
 
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
         // ✅ Slower growth
-        this.radius *= 1.05;
+        this.radius *= 1.025;
 
         try {
           bounceSound.currentTime = 0;
@@ -176,8 +176,8 @@
 
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    circle.x = canvas.width / 2;
-    circle.y = canvas.height / 2;
+    circle.x = canvas.width / 3;
+    circle.y = canvas.height / 3;
     circle.radius = Math.min(canvas.width, canvas.height) * 0.4; // ✅ keep inside canvas
 
     hue = (hue + 1) % 360;
