@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ball</title> <!-- ✅ Updated title -->
+  <title>Ball</title>
   <style>
     html, body {
       margin: 0;
@@ -132,7 +132,7 @@
         this.y -= normalY * overlap;
 
         // ✅ Slower growth
-        this.radius *= 1.001;
+        this.radius *= 1.1;
 
         try {
           bounceSound.currentTime = 0;
