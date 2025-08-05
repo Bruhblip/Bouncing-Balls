@@ -124,15 +124,15 @@
         this.dy -= 2 * dot * normalY;
 
         // ✅ Use slower bounce multiplier
-        this.dx *= 1.001;
-        this.dy *= 1.001;
+        this.dx *= 1.05;
+        this.dy *= 1.05;
 
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
         this.y -= normalY * overlap;
 
         // ✅ Slower growth
-        this.radius *= 1.1;
+        this.radius *= 1.05;
 
         try {
           bounceSound.currentTime = 0;
