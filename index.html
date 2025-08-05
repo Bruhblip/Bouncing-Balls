@@ -124,8 +124,8 @@
         this.dy -= 2 * dot * normalY;
 
         // ✅ Use slower bounce multiplier
-        this.dx *= 1.025;
-        this.dy *= 1.025;
+        this.dx *= 1.001;
+        this.dy *= 1.001;
 
         const overlap = dist + this.radius - circle.radius;
         this.x -= normalX * overlap;
